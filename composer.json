@@ -1,0 +1,24 @@
+{
+  "name": "ccalcagno/validator",
+  "description": "Class for validation of data",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Calcagno\\Validator\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Cleber Calcagno",
+      "email": "cleber.calcagno@shiftsistemas.com.br",
+      "role": "Maintainer"
+    },
+    {
+      "name": "Rafael Pinheiro",
+      "email": "rafaelwendel@hotmail.com",
+      "role": "Original Author"
+    }
+  ],
+  "require": {}
+}
