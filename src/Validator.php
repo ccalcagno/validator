@@ -480,7 +480,7 @@ final class Validator
    */
   public function is_cpf()
   {
-    if (!$this->validateCpf($this->_data['value'])) {
+    if (!$this->isValidCpf($this->_data['value'])) {
       $this->set_error(sprintf($this->_messages['is_cpf'], $this->_data['value']));
     }
 
