@@ -8,6 +8,14 @@
       "Calcagno\\Validator\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Calcagno\\Validator\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  },
   "authors": [
     {
       "name": "Cleber Calcagno",
@@ -20,6 +28,9 @@
       "role": "Original Author"
     }
   ],
+  "require": {
+    "php": "^8.0"
+  },
   "require-dev": {
     "phpunit/phpunit": "^11.5"
   }

@@ -651,6 +651,106 @@ final class Validator
     return $this;
   }
 
+  public function is_after($date, $format = null)
+  {
+    $verify = false;
+
+    if (is_null($format)) {
+      $value_ts = $this->_data['value'] instanceof \DateTime ? $this->_data['value']->getTimestamp() : strtotime($this->_data['value']);
+      $compare_ts = $date instanceof \DateTime ? $date->getTimestamp() : strtotime($date);
+    } else {
+      $value_date = $this->_data['value'] instanceof \DateTime ? $this->_data['value'] : \DateTime::createFromFormat($format, $this->_data['value']);
+      $compare_date = $date instanceof \DateTime ? $date : \DateTime::createFromFormat($format, $date);
+      $value_ts = $value_date ? $value_date->getTimestamp() : false;
+      $compare_ts = $compare_date ? $compare_date->getTimestamp() : false;
+    }
+
+    if ($value_ts !== false && $compare_ts !== false) {
+      $verify = $value_ts > $compare_ts;
+    }
+
+    if (!$verify) {
+      $this->set_error(sprintf($this->_messages['is_after'], $this->_data['value'], $date));
+    }
+
+    return $this;
+  }
+
+  public function is_after_or_equals($date, $format = null)
+  {
+    $verify = false;
+
+    if (is_null($format)) {
+      $value_ts = $this->_data['value'] instanceof \DateTime ? $this->_data['value']->getTimestamp() : strtotime($this->_data['value']);
+      $compare_ts = $date instanceof \DateTime ? $date->getTimestamp() : strtotime($date);
+    } else {
+      $value_date = $this->_data['value'] instanceof \DateTime ? $this->_data['value'] : \DateTime::createFromFormat($format, $this->_data['value']);
+      $compare_date = $date instanceof \DateTime ? $date : \DateTime::createFromFormat($format, $date);
+      $value_ts = $value_date ? $value_date->getTimestamp() : false;
+      $compare_ts = $compare_date ? $compare_date->getTimestamp() : false;
+    }
+
+    if ($value_ts !== false && $compare_ts !== false) {
+      $verify = $value_ts >= $compare_ts;
+    }
+
+    if (!$verify) {
+      $this->set_error(sprintf($this->_messages['is_after_or_equals'], $this->_data['value'], $date));
+    }
+
+    return $this;
+  }
+
+  public function is_before($date, $format = null)
+  {
+    $verify = false;
+
+    if (is_null($format)) {
+      $value_ts = $this->_data['value'] instanceof \DateTime ? $this->_data['value']->getTimestamp() : strtotime($this->_data['value']);
+      $compare_ts = $date instanceof \DateTime ? $date->getTimestamp() : strtotime($date);
+    } else {
+      $value_date = $this->_data['value'] instanceof \DateTime ? $this->_data['value'] : \DateTime::createFromFormat($format, $this->_data['value']);
+      $compare_date = $date instanceof \DateTime ? $date : \DateTime::createFromFormat($format, $date);
+      $value_ts = $value_date ? $value_date->getTimestamp() : false;
+      $compare_ts = $compare_date ? $compare_date->getTimestamp() : false;
+    }
+
+    if ($value_ts !== false && $compare_ts !== false) {
+      $verify = $value_ts < $compare_ts;
+    }
+
+    if (!$verify) {
+      $this->set_error(sprintf($this->_messages['is_before'], $this->_data['value'], $date));
+    }
+
+    return $this;
+  }
+
+  public function is_before_or_equals($date, $format = null)
+  {
+    $verify = false;
+
+    if (is_null($format)) {
+      $value_ts = $this->_data['value'] instanceof \DateTime ? $this->_data['value']->getTimestamp() : strtotime($this->_data['value']);
+      $compare_ts = $date instanceof \DateTime ? $date->getTimestamp() : strtotime($date);
+    } else {
+      $value_date = $this->_data['value'] instanceof \DateTime ? $this->_data['value'] : \DateTime::createFromFormat($format, $this->_data['value']);
+      $compare_date = $date instanceof \DateTime ? $date : \DateTime::createFromFormat($format, $date);
+      $value_ts = $value_date ? $value_date->getTimestamp() : false;
+      $compare_ts = $compare_date ? $compare_date->getTimestamp() : false;
+    }
+
+    if ($value_ts !== false && $compare_ts !== false) {
+      $verify = $value_ts <= $compare_ts;
+    }
+
+    if (!$verify) {
+      $this->set_error(sprintf($this->_messages['is_before_or_equals'], $this->_data['value'], $date));
+    }
+
+    return $this;
+  }
+
   /**
    * Verify if the current data contains just alpha caracters
    * @access protected
