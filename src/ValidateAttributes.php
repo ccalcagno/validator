@@ -104,15 +104,34 @@ trait ValidateAttributes
    */
   public function validatePhone(mixed $value): bool
   {
-    if (!is_string($value)) {
-      return false;
-    }
-
-    if (is_null($value) || empty($value)) {
+    if (is_null($value) || $value === '') {
       return true;
     }
 
-    return preg_match('/^(\(0?\d{2}\)\s?|0?\d{2}[\s.-]?)\d{4,5}[\s.-]?\d{4}$/', $value);
+    if (!is_string($value) && !is_numeric($value)) {
+      return false;
+    }
+
+    $value = preg_replace('/\D/', '', (string) $value);
+
+    // Remove 0 inicial (caso venha tipo 027...)
+    if (str_starts_with($value, '0')) {
+      $value = substr($value, 1);
+    }
+
+    // Deve ter 10 ou 11 dígitos (fixo ou celular com DDD)
+    if (!in_array(strlen($value), [10, 11], true)) {
+      return false;
+    }
+
+    // Validação básica de DDD (opcional mais realista)
+    $ddd = substr($value, 0, 2);
+
+    if ((int) $ddd < 11 || (int) $ddd > 99) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
