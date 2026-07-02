@@ -14,6 +14,7 @@ namespace Calcagno\Validator;
 final class Validator
 {
   use ValidateAttributes;
+  use ValidatesDates;
 
   private $_data = array();
   private $_errors = array();
@@ -54,6 +55,7 @@ final class Validator
   {
     $this->_messages = array(
       'is_required'    => 'O campo %s é obrigatório',
+      'is_checked'     => 'É necessário marcar a opção %s para continuar',
       'min_length'     => 'O campo %s deve conter ao mínimo %s caracter(es)',
       'max_length'     => 'O campo %s deve conter ao máximo %s caracter(es)',
       'between_length' => 'O campo %s deve conter entre %s e %s caracter(es)',
@@ -91,7 +93,11 @@ final class Validator
       'is_zipCode'     => 'O campo %s não é um CEP válido',
       'is_plate'       => 'O campo $s não é válido',
       'is_ip'          => 'O campo $s não é um ip válido',
-      'is_card_number' => 'O campo $s não é um número de cartão válido'
+      'is_card_number' => 'O campo $s não é um número de cartão válido',
+      'is_after_or_equals' => 'A data %s deve ser maior ou igual a %s',
+      'is_before_or_equals' => 'A data %s deve ser menor ou igual a %s',
+      'is_before' => 'A data %s deve ser menor que $s',
+      'is_after' => 'A data %s deve ser maior que $s',
     );
   }
 
@@ -167,6 +173,32 @@ final class Validator
     if (!$this->validateRequired($this->_data['value'])) {
       $this->set_error(sprintf($this->_messages['is_required'], $this->_data['name']));
     }
+    return $this;
+  }
+
+  /**
+   * Verify if a checkbox/boolean field was checked/accepted.
+   *
+   * Trata os formatos comuns que um checkbox pode assumir dependendo de
+   * como o valor chega até aqui: valor ausente (checkbox desmarcado não é
+   * enviado no POST), string "1"/"on"/"true", int 1, ou bool true.
+   *
+   * @access public
+   * @param array $truthy [optional] Valores aceitos como "marcado"
+   * @return Validator The self instance
+   */
+  public function is_checked(array $truthy = ['1', 'on', 'true', 1, true]): static
+  {
+    $value = $this->_data['value'];
+
+    // Checkbox desmarcado não envia o campo no POST — trata ausência/null
+    // como "não marcado", sem gerar erro de tipo ao comparar.
+    $verify = !is_null($value) && in_array($value, $truthy, true);
+
+    if (!$verify) {
+      $this->set_error(sprintf($this->_messages['is_checked'], ($this->_data['dysplay'] ?? $this->_data['name'])));
+    }
+
     return $this;
   }
 
@@ -619,135 +651,6 @@ final class Validator
     if (!$verify) {
       $this->set_error(sprintf($this->_messages['is_negative'], $this->_data['name']));
     }
-    return $this;
-  }
-
-  /**
-   * Verify if the current data is a valid Date
-   * @access public
-   * @param String $format [optional] The Date format
-   * @return Validator The self instance
-   */
-  public function is_date($format = null)
-  {
-    $verify = true;
-    if ($this->_data['value'] instanceof \DateTime) {
-      return $this;
-    } elseif (!is_string($this->_data['value'])) {
-      $verify = false;
-    } elseif (is_null($format)) {
-      $verify = (strtotime($this->_data['value']) !== false);
-      if ($verify) {
-        return $this;
-      }
-    }
-    if ($verify) {
-      $date_from_format = \DateTime::createFromFormat($format, $this->_data['value']);
-      $verify = $date_from_format && $this->_data['value'] === date($format, $date_from_format->getTimestamp());
-    }
-    if (!$verify) {
-      $this->set_error(sprintf($this->_messages['is_date'], $this->_data['value']));
-    }
-    return $this;
-  }
-
-  public function is_after($date, $format = null)
-  {
-    $verify = false;
-
-    if (is_null($format)) {
-      $value_ts = $this->_data['value'] instanceof \DateTime ? $this->_data['value']->getTimestamp() : strtotime($this->_data['value']);
-      $compare_ts = $date instanceof \DateTime ? $date->getTimestamp() : strtotime($date);
-    } else {
-      $value_date = $this->_data['value'] instanceof \DateTime ? $this->_data['value'] : \DateTime::createFromFormat($format, $this->_data['value']);
-      $compare_date = $date instanceof \DateTime ? $date : \DateTime::createFromFormat($format, $date);
-      $value_ts = $value_date ? $value_date->getTimestamp() : false;
-      $compare_ts = $compare_date ? $compare_date->getTimestamp() : false;
-    }
-
-    if ($value_ts !== false && $compare_ts !== false) {
-      $verify = $value_ts > $compare_ts;
-    }
-
-    if (!$verify) {
-      $this->set_error(sprintf($this->_messages['is_after'], $this->_data['value'], $date));
-    }
-
-    return $this;
-  }
-
-  public function is_after_or_equals($date, $format = null)
-  {
-    $verify = false;
-
-    if (is_null($format)) {
-      $value_ts = $this->_data['value'] instanceof \DateTime ? $this->_data['value']->getTimestamp() : strtotime($this->_data['value']);
-      $compare_ts = $date instanceof \DateTime ? $date->getTimestamp() : strtotime($date);
-    } else {
-      $value_date = $this->_data['value'] instanceof \DateTime ? $this->_data['value'] : \DateTime::createFromFormat($format, $this->_data['value']);
-      $compare_date = $date instanceof \DateTime ? $date : \DateTime::createFromFormat($format, $date);
-      $value_ts = $value_date ? $value_date->getTimestamp() : false;
-      $compare_ts = $compare_date ? $compare_date->getTimestamp() : false;
-    }
-
-    if ($value_ts !== false && $compare_ts !== false) {
-      $verify = $value_ts >= $compare_ts;
-    }
-
-    if (!$verify) {
-      $this->set_error(sprintf($this->_messages['is_after_or_equals'], $this->_data['value'], $date));
-    }
-
-    return $this;
-  }
-
-  public function is_before($date, $format = null)
-  {
-    $verify = false;
-
-    if (is_null($format)) {
-      $value_ts = $this->_data['value'] instanceof \DateTime ? $this->_data['value']->getTimestamp() : strtotime($this->_data['value']);
-      $compare_ts = $date instanceof \DateTime ? $date->getTimestamp() : strtotime($date);
-    } else {
-      $value_date = $this->_data['value'] instanceof \DateTime ? $this->_data['value'] : \DateTime::createFromFormat($format, $this->_data['value']);
-      $compare_date = $date instanceof \DateTime ? $date : \DateTime::createFromFormat($format, $date);
-      $value_ts = $value_date ? $value_date->getTimestamp() : false;
-      $compare_ts = $compare_date ? $compare_date->getTimestamp() : false;
-    }
-
-    if ($value_ts !== false && $compare_ts !== false) {
-      $verify = $value_ts < $compare_ts;
-    }
-
-    if (!$verify) {
-      $this->set_error(sprintf($this->_messages['is_before'], $this->_data['value'], $date));
-    }
-
-    return $this;
-  }
-
-  public function is_before_or_equals($date, $format = null)
-  {
-    $verify = false;
-
-    if (is_null($format)) {
-      $value_ts = $this->_data['value'] instanceof \DateTime ? $this->_data['value']->getTimestamp() : strtotime($this->_data['value']);
-      $compare_ts = $date instanceof \DateTime ? $date->getTimestamp() : strtotime($date);
-    } else {
-      $value_date = $this->_data['value'] instanceof \DateTime ? $this->_data['value'] : \DateTime::createFromFormat($format, $this->_data['value']);
-      $compare_date = $date instanceof \DateTime ? $date : \DateTime::createFromFormat($format, $date);
-      $value_ts = $value_date ? $value_date->getTimestamp() : false;
-      $compare_ts = $compare_date ? $compare_date->getTimestamp() : false;
-    }
-
-    if ($value_ts !== false && $compare_ts !== false) {
-      $verify = $value_ts <= $compare_ts;
-    }
-
-    if (!$verify) {
-      $this->set_error(sprintf($this->_messages['is_before_or_equals'], $this->_data['value'], $date));
-    }
-
     return $this;
   }
 
